@@ -1,94 +1,71 @@
 # 🏛️ VaadaTrack - Political Manifesto Tracker & AI Assistant
 
-![VaadaTrack Banner](./docs/images/banner.png)
-
-> An intelligent, full-stack application built to track, analyze, and compare political party manifestos using Retrieval-Augmented Generation (RAG) and Large Language Models (LLMs).
+VaadaTrack is an intelligent, full-stack application built to track, analyze, and compare political party manifestos using Retrieval-Augmented Generation (RAG) and Large Language Models (LLMs).
 
 ## ✨ Features
 
-- **🤖 AI-Powered "Ask Manifesto" Chat:** Ask complex questions about a specific party's promises and get accurate, context-aware answers powered by Groq and LLaMA 3.
-- **📊 Cross-Party Comparison:** Select multiple political parties and instantly compare their manifestos side-by-side on key issues like Healthcare, Economy, and Education.
-- **🛡️ Secure Admin Dashboard:** Protected routes allowing administrators to upload new manifesto PDFs, extract text, generate semantic embeddings, and sync them to the database.
-- **⚡ Multi-Threaded RAG Pipeline:** Uses Node.js `worker_threads` and `@xenova/transformers` (`all-MiniLM-L6-v2`) for local, zero-cost, and non-blocking semantic embeddings.
-- **📱 Responsive & Polished UI:** Beautiful, modern glass-morphic interface built with Tailwind CSS and React Markdown.
+- **🤖 AI-Powered "Ask Manifesto" Chat:** Ask complex questions about a specific party's promises and get accurate, context-aware answers.
+- **📊 Cross-Party Comparison:** Select multiple political parties and instantly compare their manifestos side-by-side on key issues.
+- **🛡️ Secure Admin Dashboard:** Protected routes allowing administrators to upload new manifesto PDFs, extract text, manually manage parties, and track promises.
+- **⚡ Multi-Threaded RAG Pipeline:** Uses Node.js `worker_threads` and `@xenova/transformers` for local semantic embeddings.
+- **📱 Responsive & Polished UI:** Beautiful, modern interface built with Tailwind CSS and React Markdown.
 
-## 📸 Screenshots
+## 👥 User vs. Admin Experience
 
-*(Please replace these placeholder paths with actual screenshots of your application!)*
+### User Dashboard (Public)
+- **Browse Parties & Promises:** Track fulfillment status (Fulfilled, Pending, Broken) and see overall statistics.
+- **Manifesto Summaries:** Read AI-generated 3-5 paragraph summaries of 100+ page manifestos.
+- **Compare Parties:** Select two parties and a topic to generate a side-by-side policy comparison.
+- **Ask AI:** Use the chatbot to ask questions about specific manifestos, answered directly from the source text.
 
-| Home Dashboard | AI Chat Interface |
-|:---:|:---:|
-| <img src="./docs/images/home.png" width="400"/> | <img src="./docs/images/chat.png" width="400"/> |
-| **Manifesto Comparison** | **Admin PDF Upload** |
-| <img src="./docs/images/compare.png" width="400"/> | <img src="./docs/images/admin.png" width="400"/> |
+### Admin Dashboard (Protected)
+- **Manage Parties & Promises:** Manually add, edit, or delete political parties and promises.
+- **Extract Promises via AI:** Upload a manifesto PDF and let the AI automatically extract all actionable promises into the database.
+- **Verify Promises via AI:** Provide factual evidence texts, and the AI will analyze whether a promise should be marked as Fulfilled, Partially Fulfilled, or Broken.
 
 ## 🛠️ Technology Stack
 
-**Frontend:**
-- React.js
-- Tailwind CSS (with `@tailwindcss/typography` for markdown)
-- Axios & React Router
-
-**Backend:**
-- Node.js & Express.js (Worker Threads for background processing)
-- MongoDB & Mongoose (Database & Vector storage)
-- PDF-Parse (Document extraction)
-- Groq SDK (LLM inference)
-- Xenova/Transformers (Local AI Embeddings)
-- JSON Web Tokens (JWT Auth)
-
-**Deployment:**
-- Docker & Docker Compose (Containerization)
-- Nginx (Reverse Proxy)
-- Vercel (Frontend Hosting)
-- Render.com (Backend API Hosting)
+- **Frontend:** React.js, React Router, Tailwind CSS, Axios, React Markdown
+- **Backend:** Node.js, Express.js, MongoDB & Mongoose
+- **AI & Search:** Groq SDK (LLaMA 3), Xenova Transformers (Local Embeddings), PDF-Parse
 
 ## 🚀 Quick Start (Local Development)
 
-### 1. Clone the repository
-```bash
-git clone https://github.com/yourusername/VaadaTrack.git
-cd VaadaTrack
-```
-
-### 2. Set up Environment Variables
-Create a `.env` file in the `backend/` directory:
+### 1. Set up Environment Variables
+Create `backend/.env`:
 ```env
 PORT=8000
-MONGO_URI=your_mongodb_connection_string
-JWT_SECRET=your_super_secret_jwt_key
+MONGODB_URI=your_mongodb_connection_string
+JWT_SECRET=your_jwt_secret
 GROQ_API_KEY=your_groq_api_key
-FRONTEND_URL=vaada-track-ten.vercel.app
+FRONTEND_URL=http://localhost:3000
 ```
 
-### 3. Run with Docker (Recommended)
-You can spin up the entire stack using Docker Compose:
+### 2. Run Locally
+Install all dependencies:
 ```bash
-docker-compose up --build
+npm run install-all
 ```
-The app will be available at `vaada-track-ten.vercel.app`.
-
-### 4. Run Manually without Docker
-**Start the Backend:**
+Start backend and frontend together:
 ```bash
-cd backend
-npm install
 npm run dev
 ```
 
-**Start the Frontend:**
+### 3. Seed Sample Data
+Run these from the `backend` folder after setting up `backend/.env`:
 ```bash
-cd frontend
-npm install
-npm start
+node utils/seed.js
+node utils/seedManifestos.js
 ```
-The app will be available at `http://vaada-track-ten.vercel.app`.
+Default seed admin:
+- **Email:** admin@vaadatrack.com
+- **Password:** admin123
 
-## 🧠 How the AI (RAG) Works
-1. **Ingestion:** Admins upload a PDF manifesto. The backend parses the PDF into raw text and generates an AI summary and category list asynchronously.
-2. **Chunking & Threaded Embeddings:** The text is split into semantic 100-word chunks. We send these chunks to a background **Worker Thread** running the `all-MiniLM-L6-v2` neural network locally via Xenova. This keeps the main Node.js event loop completely unblocked. The vectors are saved directly in the MongoDB manifesto document.
-3. **Retrieval:** When a user asks a question, the user's query is also embedded by the worker thread. We calculate cosine similarity between the query vector and the manifesto chunks, pulling the top 5 most relevant sections.
-4. **Generation:** The relevant context is injected into a prompt and sent to Groq's LLaMA 3 model to generate a highly accurate, hallucination-free response.
+### 4. Docker (Optional)
+```bash
+docker-compose up --build
+```
+The frontend container is served on `http://localhost:3000` and the backend on `http://localhost:8000`.
 
-## 📄 License
-This project is licensed under the MIT License.
+## 🧠 Note on AI Processing
+The AI features (Summary, Extraction, Analysis, Chat) rely completely on the texts provided. When uploading "evidence" to analyze a promise, make sure to paste factual paragraphs or report summaries, as the AI cannot independently click web links or browse the live internet.
